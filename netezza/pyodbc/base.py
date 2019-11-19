@@ -1,24 +1,27 @@
 """
 Netezza database backend for Django.
 """
+from netezza.pyodbc.introspection import DatabaseIntrospection
+from netezza.pyodbc.creation import DatabaseCreation
+from netezza.pyodbc.client import DatabaseClient
+from netezza.pyodbc.operations import DatabaseOperations
 import types
-import sys
 import pyodbc
 
 try:
     import pyodbc as Database
-except ImportError, e:
+except ImportError as e:
     from django.core.exceptions import ImproperlyConfigured
     raise ImproperlyConfigured("Error loading pyodbc module: %s" % e)
 
 from django.db.backends import BaseDatabaseWrapper, BaseDatabaseFeatures, BaseDatabaseValidation
 from django.db.backends.signals import connection_created
-from django.conf import settings
 from django import VERSION as DjangoVersion
-if DjangoVersion[:2] == (1, 2) :
+if DjangoVersion[:2] == (1, 2):
     from django import get_version
     version_str = get_version()
-    if 'SVN' in version_str and int(version_str.split('SVN-')[-1]) < 11952: # django trunk revision 11952 Added multiple database support.
+    # django trunk revision 11952 Added multiple database support.
+    if 'SVN' in version_str and int(version_str.split('SVN-')[-1]) < 11952:
         _DJANGO_VERSION = 11
     else:
         _DJANGO_VERSION = 12
@@ -31,18 +34,14 @@ elif DjangoVersion[0] == 1:
 else:
     _DJANGO_VERSION = 9
 
-from netezza.pyodbc.operations import DatabaseOperations
-from netezza.pyodbc.client import DatabaseClient
-from netezza.pyodbc.creation import DatabaseCreation
-from netezza.pyodbc.introspection import DatabaseIntrospection
-import os
-import warnings
 
 DatabaseError = Database.DatabaseError
 IntegrityError = Database.IntegrityError
 
+
 class DatabaseFeatures(BaseDatabaseFeatures):
     pass
+
 
 class DatabaseWrapper(BaseDatabaseWrapper):
     drv_name = None
@@ -66,7 +65,6 @@ class DatabaseWrapper(BaseDatabaseWrapper):
         'istartswith': 'LIKE UPPER(%s)',
         'iendswith': 'LIKE UPPER(%s)',
     }
-
 
     def __init__(self, *args, **kwargs):
         super(DatabaseWrapper, self).__init__(*args, **kwargs)
@@ -129,7 +127,8 @@ class DatabaseWrapper(BaseDatabaseWrapper):
             else:
                 if not db_str:
                     from django.core.exceptions import ImproperlyConfigured
-                    raise ImproperlyConfigured('You need to specify NAME in your Django settings file.')
+                    raise ImproperlyConfigured(
+                        'You need to specify NAME in your Django settings file.')
 
                 cstr_parts.append('DATABASE=%s' % db_str)
 
@@ -139,12 +138,12 @@ class DatabaseWrapper(BaseDatabaseWrapper):
             connstr = ';'.join(cstr_parts)
             autocommit = options.get('autocommit', True)
             if self.unicode_results:
-                self.connection = Database.connect(connstr, \
-                        autocommit=autocommit, \
-                        unicode_results='True')
+                self.connection = Database.connect(connstr,
+                                                   autocommit=autocommit,
+                                                   unicode_results='True')
             else:
-                self.connection = Database.connect(connstr, \
-                        autocommit=autocommit, ansi=True)
+                self.connection = Database.connect(connstr,
+                                                   autocommit=autocommit, ansi=True)
             connection_created.send(sender=self.__class__)
 
         cursor = self.connection.cursor()
@@ -161,6 +160,7 @@ class CursorWrapper(object):
     A wrapper around the pyodbc's cursor that takes in account a) some pyodbc
     DB-API 2.0 implementation and b) some common ODBC driver particularities.
     """
+
     def __init__(self, cursor, driver_needs_utf8):
         self.cursor = cursor
         self.driver_needs_utf8 = driver_needs_utf8

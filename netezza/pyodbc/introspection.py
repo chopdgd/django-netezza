@@ -4,6 +4,7 @@ import types
 import datetime
 import decimal
 
+
 class DatabaseIntrospection(BaseDatabaseIntrospection):
     # Map type codes to Django Field types.
     data_types_reverse = {
@@ -32,7 +33,6 @@ class DatabaseIntrospection(BaseDatabaseIntrospection):
             WHERE objclass IN (4905,4906,4908,4907,4909,4940,4911,4913,4953);""")
         return [row[0] for row in cursor.fetchall()]
 
-
     def get_table_description(self, cursor, table_name, identity_check=True):
         "Returns a description of the table, with the DB-API cursor.description interface."
         cursor.execute("SELECT * FROM %s LIMIT 1" % self.connection.ops.quote_name(table_name))
@@ -47,7 +47,7 @@ class DatabaseIntrospection(BaseDatabaseIntrospection):
 
     def get_relations(self, cursor, table_name):
         return []
-    
+
         """
         Returns a dictionary of {field_index: (field_index_other_table, other_table)}
         representing all relationships to the given table. Indexes are 0-based.
@@ -67,7 +67,7 @@ WHERE fk.TABLE_NAME = %s
 
     def get_indexes(self, cursor, table_name):
         return []
-    
+
         """
         Returns a dictionary of fieldname -> infodict for the given table,
         where each infodict is in the format:
@@ -95,5 +95,5 @@ WHERE col.TABLE_NAME = %s""", [table_name])
         try:
             return self.data_types_reverse[data_type]
         except:
-            print '*' * 10,'DEBUG add the type', data_type, 'to introspection.py'
+            print('*' * 10, 'DEBUG add the type', data_type, 'to introspection.py')
             raise

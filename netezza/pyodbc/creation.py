@@ -5,6 +5,7 @@ from django.utils.hashcompat import md5_constructor
 import random
 import sys
 
+
 class DataTypesWrapper(dict):
     def __getitem__(self, item):
         if item in ('PositiveIntegerField', 'PositiveSmallIntegerField'):
@@ -15,6 +16,7 @@ class DataTypesWrapper(dict):
             unique = base64.b64encode(rnd_hash, '__')[:6]
             return '%(fldtype)s CONSTRAINT [CK_%(fldtype)s_pos_%(unique)s_%%(column)s] CHECK ([%%(column)s] >= 0)' % locals()
         return super(DataTypesWrapper, self).__getitem__(item)
+
 
 class DatabaseCreation(BaseDatabaseCreation):
     # This dictionary maps Field objects to their associated Netezza SQL column
@@ -32,7 +34,7 @@ class DatabaseCreation(BaseDatabaseCreation):
         'CommaSeparatedIntegerField': 'VARCHAR(%(max_length)s)',
         'DateField':         'DATE',
         'DateTimeField':     'DATETIME',
-#        'DecimalField':      'numeric(%(max_digits)s, %(decimal_places)s)',
+        #        'DecimalField':      'numeric(%(max_digits)s, %(decimal_places)s)',
         'DecimalField':      'DECIMAL',
         'FileField':         'VARCHAR(%(max_length)s)',
         'FilePathField':     'VARCHAR(%(max_length)s)',
@@ -41,8 +43,8 @@ class DatabaseCreation(BaseDatabaseCreation):
         'IPAddressField':    'VARCHAR(15)',
         'NullBooleanField':  'BOOLEAN',
         'OneToOneField':     'INTEGER',
-        #'PositiveIntegerField': 'integer CONSTRAINT [CK_int_pos_%(column)s] CHECK ([%(column)s] >= 0)',
-        #'PositiveSmallIntegerField': 'smallint CONSTRAINT [CK_smallint_pos_%(column)s] CHECK ([%(column)s] >= 0)',
+        # 'PositiveIntegerField': 'integer CONSTRAINT [CK_int_pos_%(column)s] CHECK ([%(column)s] >= 0)',
+        # 'PositiveSmallIntegerField': 'smallint CONSTRAINT [CK_smallint_pos_%(column)s] CHECK ([%(column)s] >= 0)',
         'PositiveIntegerField': 'INTEGER',
         'PositiveSmallIntegerField': 'SMALLINT',
         'SlugField':         'VARCHAR(%(max_length)s)',
@@ -72,7 +74,8 @@ class DatabaseCreation(BaseDatabaseCreation):
         except Exception, e:
             sys.stderr.write("Got an error creating the test database: %s\n" % e)
             if not autoclobber:
-                confirm = raw_input("Type 'yes' if you would like to try deleting the test database '%s', or 'no' to cancel: " % test_database_name)
+                confirm = raw_input(
+                    "Type 'yes' if you would like to try deleting the test database '%s', or 'no' to cancel: " % test_database_name)
             if autoclobber or confirm == 'yes':
                 try:
                     if verbosity >= 1:
@@ -94,9 +97,9 @@ class DatabaseCreation(BaseDatabaseCreation):
         "Internal implementation - remove the test db tables."
         cursor = self.connection.cursor()
         self.set_autocommit()
-        #time.sleep(1) # To avoid "database is being accessed by other users" errors.
-        cursor.execute("ALTER DATABASE %s SET SINGLE_USER WITH ROLLBACK IMMEDIATE " % \
-                self.connection.ops.quote_name(test_database_name))
-        cursor.execute("DROP SCHEMA %s" % \
-                self.connection.ops.quote_name(test_database_name))
+        # time.sleep(1) # To avoid "database is being accessed by other users" errors.
+        cursor.execute("ALTER DATABASE %s SET SINGLE_USER WITH ROLLBACK IMMEDIATE " %
+                       self.connection.ops.quote_name(test_database_name))
+        cursor.execute("DROP SCHEMA %s" %
+                       self.connection.ops.quote_name(test_database_name))
         self.connection.close()
